@@ -26,7 +26,19 @@ function convertJsonSchemaToConvexSchema(
   jsonSchema: Awaited<ReturnType<typeof toJsonSchema>>,
 ): GenericValidator {
   if (jsonSchema?.const !== undefined) {
-    return v.literal((jsonSchema as any).const);
+    const t = jsonSchema.type;
+    const c = jsonSchema.const;
+    if (t === "null" || c === null) return v.null();
+    switch (typeof c) {
+      case "string":
+        return v.literal(c);
+      case "number":
+        return v.literal(c);
+      case "boolean":
+        return v.literal(c);
+      default:
+        v.any();
+    }
   }
   if (Array.isArray((jsonSchema as any)?.enum)) {
     const values = (jsonSchema as any).enum as any[];
