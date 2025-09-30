@@ -40,11 +40,31 @@ function convertJsonSchemaToConvexSchema(
         v.any();
     }
   }
-  if (Array.isArray((jsonSchema as any)?.enum)) {
-    const values = (jsonSchema as any).enum as any[];
-    return values.length === 1
-      ? v.literal(values[0])
-      : v.union(...values.map((val) => v.literal(val)));
+  // if (Array.isArray((jsonSchema as any)?.enum)) {
+  //   const values = (jsonSchema as any).enum as any[];
+  //   return values.length === 1
+  //     ? v.literal(values[0])
+  //     : v.union(...values.map((val) => v.literal(val)));
+  // }
+  if (Array.isArray(jsonSchema?.enum)) {
+    const values = jsonSchema.enum;
+    const memberValidators = [];
+    for (const valueItem of values) {
+      if (valueItem === null) {
+        memberValidators.push(v.null());
+        continue;
+      }
+      if (
+        typeof valueItem === "string" ||
+        typeof valueItem === "number" ||
+        typeof valueItem === "boolean"
+      ) {
+        memberValidators.push(v.literal(valueItem));
+      }
+    }
+    if (memberValidators.length === 0) return v.any();
+    if (memberValidators.length === 1) return memberValidators[0]!;
+    return v.union(...memberValidators);
   }
   if (Array.isArray((jsonSchema as any)?.oneOf)) {
     const members = (jsonSchema as any).oneOf as any[];
